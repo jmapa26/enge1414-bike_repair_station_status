@@ -182,6 +182,10 @@ public class App {
     }
 
     private List<String> findSerialPorts() {
+        if (System.getProperty("os.name").toLowerCase().contains("win")) {
+            return findWindowsSerialPorts();
+        }
+
         File devDirectory = new File("/dev");
         String[] names = devDirectory.list((directory, name) ->
             name.startsWith("cu.") ||
@@ -195,6 +199,35 @@ public class App {
         List<String> ports = new ArrayList<>();
         for (String name : names) {
             ports.add("/dev/" + name);
+        }
+        Collections.sort(ports);
+        return ports;
+    }
+
+    private List<String> findWindowsSerialPorts() {
+        List<String> ports = new ArrayList<>();
+        try {
+            Process process = new ProcessBuilder(
+                "reg", "query", "HKLM\\HARDWARE\\DEVICEMAP\\SERIALCOMM", "/s"
+            ).redirectErrorStream(true).start();
+            if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                return ports;
+            }
+            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            for (String line : output.split("\\R")) {
+                String[] fields = line.trim().split("\\s+");
+                if (fields.length > 0) {
+                    String value = fields[fields.length - 1].trim();
+                    if (value.matches("(?i)COM\\d+") && !ports.contains(value)) {
+                        ports.add(value.toUpperCase());
+                    }
+                }
+            }
+        } catch (IOException | InterruptedException exception) {
+            if (exception instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
         }
         Collections.sort(ports);
         return ports;
@@ -222,7 +255,12 @@ public class App {
     private void openAndReadSerial(String port, long id) {
         try {
             configureSerialPort(port);
-            InputStream input = new FileInputStream(port);
+            String devicePath = port;
+            if (System.getProperty("os.name").toLowerCase().contains("win")
+                && port.matches("(?i)COM\\d+")) {
+                devicePath = "\\\\.\\" + port;
+            }
+            InputStream input = new FileInputStream(devicePath);
             if (id != connectionId) {
                 input.close();
                 return;
@@ -268,7 +306,24 @@ public class App {
     private void configureSerialPort(String port) throws IOException, InterruptedException {
         String osName = System.getProperty("os.name").toLowerCase();
         if (osName.contains("win")) {
-            throw new IOException("Automatic serial setup currently supports macOS and Linux.");
+            List<String> command = new ArrayList<>();
+            command.add("mode");
+            command.add(port);
+            command.add("baud=9600");
+            command.add("parity=n");
+            command.add("data=8");
+            command.add("stop=1");
+
+            Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+            if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                process.destroyForcibly();
+                throw new IOException("Timed out while configuring " + port + ".");
+            }
+            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            if (process.exitValue() != 0) {
+                throw new IOException(output.isEmpty() ? "Could not configure " + port : output);
+            }
+            return;
         }
 
         List<String> command = new ArrayList<>();
