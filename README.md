@@ -6,13 +6,13 @@ dummy locations always show **Not in use**. **Goodwin Hall** displays the latest
 
 ## Run the app
 
-Install Java 11 or later and upload
+Install Java 8 or later and upload
 [`A6_lightSensorButton/A6_lightSensorButton.ino`](A6_lightSensorButton/A6_lightSensorButton.ino)
 to the Arduino.
 
 ### Windows
 
-Install a Java 11 or later JDK and make sure `javac` is on `PATH`. Double-click
+Install a Java 8 or later JDK and make sure `javac` is on `PATH`. Double-click
 [`run-windows.bat`](run-windows.bat). The launcher downloads jSerialComm on its
 first run, compiles the app, and opens it.
 
@@ -24,7 +24,7 @@ to the project root, then compile and run from the project root:
 
 ```sh
 mkdir -p out
-javac --release 11 -cp jSerialComm-2.11.0.jar -d out src/main/java/BikeRepairStationStatus.java
+javac -source 8 -target 8 -cp jSerialComm-2.11.0.jar -d out src/main/java/BikeRepairStationStatus.java
 java -cp "out:jSerialComm-2.11.0.jar" BikeRepairStationStatus
 ```
 

@@ -4,13 +4,13 @@ cd /d "%~dp0"
 
 where javac >nul 2>nul
 if errorlevel 1 (
-    echo Java 11 or later JDK is required. Install a JDK and add it to PATH.
+    echo Java 8 or later JDK is required. Install a JDK and add it to PATH.
     goto failed
 )
 
 where javaw >nul 2>nul
 if errorlevel 1 (
-    echo Java 11 or later JDK is required. Install a JDK and add it to PATH.
+    echo Java 8 or later JDK is required. Install a JDK and add it to PATH.
     goto failed
 )
 
@@ -24,7 +24,7 @@ if not exist "jSerialComm-2.11.0.jar" (
 )
 
 if not exist "out" mkdir "out"
-javac --release 11 -cp "jSerialComm-2.11.0.jar" -d "out" "src\main\java\BikeRepairStationStatus.java"
+javac -source 8 -target 8 -cp "jSerialComm-2.11.0.jar" -d "out" "src\main\java\BikeRepairStationStatus.java"
 if errorlevel 1 goto failed
 
 start "" javaw -cp "out;jSerialComm-2.11.0.jar" BikeRepairStationStatus
