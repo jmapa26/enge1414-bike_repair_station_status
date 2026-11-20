@@ -1,50 +1,37 @@
 # Bike Repair Station Status
 
-A small Java Swing app that displays the motion-sensor station's live status from
-the Arduino LED over USB serial. The other station entries are static examples
-and currently display “Not in use”.
+This Java Swing app displays whether a bike repair station is in use. The eight
+dummy locations always show **Not in use**. **Goodwin Hall** displays the latest
+`0` or `1` read from the Arduino as **Not in use** or **In use**, respectively.
 
-## Run locally
+## Run the app
 
-1. Connect the PIR motion sensor output to Arduino digital pin 3 and the LED
-   indicator to digital pin 13. Use the Arduino board's ground and appropriate
-   power pins for the sensor and LED.
-2. Upload `motionSensorLED.ino` to the Arduino.
-3. Connect the Arduino to the computer over USB.
-4. Compile and run the Java app from the project directory:
+Install Java 8 or later and upload
+[`A6_lightSensorButton/A6_lightSensorButton.ino`](A6_lightSensorButton/A6_lightSensorButton.ino)
+to the Arduino.
 
-   ```sh
-   javac -d bin src/App.java
-   java -cp bin App
-   ```
+### Windows
 
-5. In the app, select the Arduino serial port (use **Refresh** if you connected
-   it after opening the app), then click **Connect**. On macOS and Linux the
-   app scans `/dev`; on Windows it discovers COM ports from the Windows device
-   registry. A port can also be entered manually.
+Install a Java 8 or later JDK and make sure `javac` is on `PATH`. Double-click
+[`run-windows.bat`](run-windows.bat). The launcher downloads jSerialComm on its
+first run, compiles the app, and opens it.
 
-The Arduino waits 30 seconds after startup to let the PIR sensor warm up. When
-motion is detected, it turns the LED on and sends `LED:ON` at 9600 baud. The
-LED remains on for 20 milliseconds after the latest motion, then the Arduino
-turns it off and sends `LED:OFF`. It repeats the current state once per second
-for apps that connect after startup.
+### macOS or Linux
 
-The Java app maps `LED:ON` and `LED:OFF` to “In use” and “Not in use” for
-**Station 1 (motion sensor)**. The other entries are static placeholders. Serial
-configuration uses `stty` on macOS/Linux and `mode` on Windows.
+Download the
+[jSerialComm 2.11.0 JAR](https://repo.maven.apache.org/maven2/com/fazecast/jSerialComm/2.11.0/jSerialComm-2.11.0.jar)
+to the project root, then compile and run from the project root:
 
-## Windows executable
-
-Use a 64-bit Windows JDK that includes `jpackage` (JDK 14 or newer) and install
-WiX Toolset 3 (required by `jpackage` for `.exe` installers). Open PowerShell
-in the project directory and run:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\build_windows.ps1
+```sh
+mkdir -p out
+javac -source 8 -target 8 -cp jSerialComm-2.11.0.jar -d out src/main/java/BikeRepairStationStatus.java
+java -cp "out:jSerialComm-2.11.0.jar" BikeRepairStationStatus
 ```
 
-This creates a native installer in `dist\` named
-`Bike Repair Station Status-1.0.0.exe`. Run the installer, then launch
-**Bike Repair Station Status** from the Start menu or desktop shortcut.
-The executable should be built on Windows; `jpackage` cannot create Windows
-packages from macOS or Linux.
+In the app, select the Arduino's serial port. The app reads it at 9600 baud and
+checks for new serial data every 100 ms. Keep the Arduino Serial Monitor closed
+while the app is connected, since only one application can normally use the
+serial port at a time. Select Goodwin Hall to see the Arduino state. The sketch
+does not send an initial value at startup; it sends the toggle value when the
+button is pressed. After connecting, the app displays "Waiting for Arduino..."
+until the next button press sends a value.
