@@ -22,14 +22,14 @@ import java.util.regex.Pattern;
 
 public final class BikeRepairStationStatus {
     private static final String[] LOCATIONS = {
-            "Dummy Location 1",
-            "Dummy Location 2",
-            "Dummy Location 3",
-            "Dummy Location 4",
-            "Dummy Location 5",
-            "Dummy Location 6",
-            "Dummy Location 7",
-            "Dummy Location 8",
+            "Dietrick Hall",
+            "McComas Hall",
+            "War Memorial Hall",
+            "Pamplin Hall",
+            "Perry Street Garage",
+            "Squires Plaza",
+            "Venture Out Center",
+            "Duck Pond Gazebo",
             "Goodwin Hall"
     };
     private static final Pattern STATUS_LINE =
